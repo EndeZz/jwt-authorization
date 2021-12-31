@@ -24,8 +24,29 @@ class UserService {
     // Отправляем на почту письмо для активации
     const userDto = new UserDto(user); // id, email, isActivated
     const tokens = tokenService.generateTokens({ ...userDto });
-    await tokenService.saveToken(userDto.id, tokens.refreshToken); // Сохраняем refreshToken в БД
 
+    await tokenService.saveToken(userDto.id, tokens.refreshToken); // Сохраняем refreshToken в БД
+    // возвращаем инфу о пользователе и токены
+    return { ...tokens, user: userDto };
+  }
+
+  async login(email, password) {
+    const user = await UserModel.findOne({ email });
+    // нет ли с таким email пользака в БД
+    if (!user) {
+      throw ApiError.BadRequest(`Пользователь с таким email не найден`);
+    }
+
+    const isPassEquals = await bcrypt.compare(password, user.password);
+
+    if (!isPassEquals) {
+      throw ApiError.BadRequest(`Некорректный пароль`);
+    }
+
+    const userDto = new UserDto(user);
+    const tokens = tokenService.generateTokens({ ...userDto });
+
+    await tokenService.saveToken(userDto.id, tokens.refreshToken); // Сохраняем refreshToken в БД
     // возвращаем инфу о пользователе и токены
     return { ...tokens, user: userDto };
   }
