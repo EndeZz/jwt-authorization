@@ -86,6 +86,11 @@ class UserService {
     // возвращаем инфу о пользователе и токены
     return { ...tokens, user: userDto };
   }
+
+  async getAllUsers() {
+    const users = await UserModel.find();
+    return users;
+  }
 }
 
 module.exports = new UserService();
